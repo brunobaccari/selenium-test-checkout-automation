@@ -1,20 +1,35 @@
-# selenium-test-checkout-automation
-Descrição do projeto
-Este é um projeto de automação de teste utilizando o Selenium WebDriver em Python. O objetivo é realizar uma compra em um site de e-commerce (https://www.saucedemo.com/) preenchendo informações do usuário e realizando o checkout.
+# Selenium · Jornada de checkout
 
-Pré-requisitos
-Python 3.x
-ChromeDriver (versão compatível com a versão do seu Chrome)
+[English version](README.en.md)
 
-Como funciona
-O script principal (arquivo_principal.py) abre o site de e-commerce, realiza o login com as credenciais fornecidas no arquivo config.py, adiciona um item ao carrinho e preenche as informações necessárias para a finalização da compra. Durante o processo, o script tira prints da tela e salva em uma pasta de evidências.
+Script Python para percorrer login, carrinho e checkout no [SauceDemo](https://www.saucedemo.com/), registrando telas e logs das etapas.
 
-O arquivo config.py contém as informações de configuração, como as credenciais de login, as informações de checkout e os caminhos para as pastas de log e evidências.
+## Executar
 
-Como utilizar
-Para utilizar o script, é necessário ter o Python e o ChromeDriver instalados na máquina. Além disso, é preciso instalar as dependências listadas no arquivo requirements.txt:
+Com Python e Chrome instalados:
 
-pip install -r requirements.txt
+```sh
+python -m venv .venv
+```
 
-Após a instalação das dependências, basta executar o script principal:
-python Código_principal.py
+Ative com `.venv\Scripts\Activate.ps1` no PowerShell ou `source .venv/bin/activate` no Linux/macOS.
+
+```sh
+python -m pip install -r requirements.txt
+python arquivo_principal.py
+```
+
+`config.py` contém a URL, a conta pública do SauceDemo, os dados de checkout e os diretórios de saída. Essa implementação lê o módulo diretamente; não carrega `.env`. Use apenas dados de demonstração.
+
+## O que o código faz
+
+1. Abre o Chrome e realiza login.
+2. Adiciona a mochila ao carrinho.
+3. Preenche os dados do checkout e conclui a jornada.
+4. Salva screenshots em `evidencias` e registros em `logs`.
+
+É um exemplo de interação e coleta de evidências. A mensagem de conclusão do script não substitui assertions do total ou da confirmação do pedido; essas verificações não estão implementadas como testes.
+
+## Ambiente
+
+O projeto preserva dependências antigas, incluindo Selenium 4.8, e um `chromedriver.exe`. Confira a compatibilidade do driver com o navegador. Essa revisão corrigiu o nome do comando de execução e documentou o comportamento existente; não reexecutou o script nem atualizou as dependências.
