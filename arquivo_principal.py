@@ -1,78 +1,73 @@
-import os
-import time
 import logging
+from decimal import Decimal
+from pathlib import Path
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from config import *
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
-# Configuração do logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+from config import site, user_name, password, first_name, last_name, postalcode, headless
 
-# Configurações do Chrome Driver
-chrome_options = webdriver.ChromeOptions()
-chrome_options.add_argument("--start-maximized")
-chrome_options.add_argument("--disable-notifications")
-driver = webdriver.Chrome(options= chrome_options)
 
-# Definir caminhos de log e evidências
-if not os.path.exists(log_path):
-    os.makedirs(log_path)
-if not os.path.exists(evidence_path):
-    os.makedirs(evidence_path)
-timestamp = time.strftime('%Y%m%d-%H%M%S')
-log_filename = f'log_{timestamp}.txt'
-log_file = os.path.join(log_path, log_filename)
+def test_checkout():
+    output = Path('results')
+    output.mkdir(exist_ok=True)
+    options = webdriver.ChromeOptions()
+    if headless:
+        options.add_argument('--headless=new')
+    options.add_argument('--window-size=1440,1000')
+    options.add_experimental_option('prefs', {
+        'credentials_enable_service': False,
+        'profile.password_manager_enabled': False,
+        'profile.password_manager_leak_detection': False,
+    })
+    driver = webdriver.Chrome(options=options)
+    driver.set_page_load_timeout(30)
+    wait = WebDriverWait(driver, 15)
 
-# Adicionar o handler ao logger
-file_handler = logging.FileHandler(log_file)
-file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-logger = logging.getLogger()
-logger.addHandler(file_handler)
+    def element(selector):
+        return wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, selector)))
 
-# Função para tirar prints e salvar em pasta de evidências
-def take_screenshot():
-    num_prints = len(os.listdir(evidence_path))
-    nome_arquivo = f'CT_evidencia_{str(num_prints+1).zfill(3)}.png'
-    path_arquivo = os.path.join(evidence_path, nome_arquivo)
-    driver.get_screenshot_as_file(path_arquivo)
-    logging.info('tirando print' + f'CT_evidencia_{str(num_prints+1).zfill(3)}.png')
+    def click(selector):
+        wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, selector))).click()
 
-# Abrir o site e preencher campos
-logging.info('Abrindo site')
-driver.get(site)
-driver.implicitly_wait(2)
-take_screenshot()
-logging.info('escrevendo usuário')
-driver.find_element(By.CSS_SELECTOR, '#user-name').send_keys(user_name)
+    try:
+        driver.get(site)
+        element('#user-name').send_keys(user_name)
+        element('#password').send_keys(password)
+        click('#login-button')
+        wait.until(EC.url_contains('/inventory.html'))
+        click('#add-to-cart-sauce-labs-backpack')
+        assert element('.shopping_cart_badge').text == '1'
+        click('.shopping_cart_link')
+        assert element('.inventory_item_name').text == 'Sauce Labs Backpack'
+        assert element('.cart_quantity').text == '1'
+        assert element('.inventory_item_price').text == '$29.99'
+        click('#checkout')
+        element('#first-name').send_keys(first_name)
+        element('#last-name').send_keys(last_name)
+        element('#postal-code').send_keys(postalcode)
+        click('#continue')
+        assert element('.inventory_item_name').text == 'Sauce Labs Backpack'
+        assert element('.summary_subtotal_label').text == 'Item total: $29.99'
+        tax = Decimal(element('.summary_tax_label').text.split('$')[1])
+        total = Decimal(element('.summary_total_label').text.split('$')[1])
+        assert tax == Decimal('2.40')
+        assert total == Decimal('29.99') + tax == Decimal('32.39')
+        click('#finish')
+        assert element('.complete-header').text == 'Thank you for your order!'
+        assert not driver.find_elements(By.CSS_SELECTOR, '.shopping_cart_badge')
+        driver.save_screenshot(str(output / 'checkout-completo.png'))
+    except Exception:
+        try:
+            driver.save_screenshot(str(output / 'falha.png'))
+        except Exception:
+            logging.exception('Não foi possível capturar a tela da falha')
+        raise
+    finally:
+        driver.quit()
 
-logging.info('escrevendo senha')
-driver.find_element(By.CSS_SELECTOR, '#password').send_keys(password)
-take_screenshot()
-logging.info('clicando no botão de login')
-driver.find_element(By.CSS_SELECTOR, '#login-button').click()
-driver.implicitly_wait(2)
 
-# Adicionar item ao carrinho e realizar checkout
-take_screenshot()
-driver.find_element(By.CSS_SELECTOR, '#add-to-cart-sauce-labs-backpack').click()
-logging.info('adicionando ao carrinho')
-take_screenshot()
-driver.find_element(By.CSS_SELECTOR, '#shopping_cart_container').click()
-take_screenshot()
-driver.find_element(By.CSS_SELECTOR, '#checkout').click()
-take_screenshot()
-logging.info('escrevendo dados')
-driver.find_element(By.CSS_SELECTOR, '#first-name').send_keys(first_name)
-driver.find_element(By.CSS_SELECTOR, '#last-name').send_keys(last_name)
-driver.find_element(By.CSS_SELECTOR, '#postal-code').send_keys(postalcode)
-take_screenshot()
-driver.find_element(By.CSS_SELECTOR, '[type="submit"]').click()
-take_screenshot()
-driver.find_element(By.CSS_SELECTOR, '#finish').click()
-take_screenshot()
-
-# Finalizar testes e fechar driver
-logging.info('Teste Passou')
-file_handler.close()
-time.sleep(5)
-driver.quit()
+if __name__ == '__main__':
+    test_checkout()
