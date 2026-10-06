@@ -1,35 +1,25 @@
-# Selenium · Jornada de checkout
+# Selenium · Checkout no SauceDemo
 
-[English version](README.en.md)
+[English](README.en.md)
 
-Script Python para percorrer login, carrinho e checkout no [SauceDemo](https://www.saucedemo.com/), registrando telas e logs das etapas.
+Jornada de login, carrinho e checkout no [SauceDemo](https://www.saucedemo.com/). Verifica produto, quantidade, preço, subtotal, imposto, total, confirmação e esvaziamento do carrinho. Falhas encerram o processo com erro; o navegador fecha também quando uma validação falha.
 
 ## Executar
 
-Com Python e Chrome instalados:
+Com Python 3.14 e Chrome instalados:
 
 ```sh
 python -m venv .venv
-```
-
-Ative com `.venv\Scripts\Activate.ps1` no PowerShell ou `source .venv/bin/activate` no Linux/macOS.
-
-```sh
+# Ative .venv no seu terminal
 python -m pip install -r requirements.txt
-python arquivo_principal.py
+cp .env.example .env
+python -m pytest -q arquivo_principal.py --junitxml=results/junit.xml
 ```
 
-`config.py` contém a URL, a conta pública do SauceDemo, os dados de checkout e os diretórios de saída. Essa implementação lê o módulo diretamente; não carrega `.env`. Use apenas dados de demonstração.
+No PowerShell, copie o exemplo com `Copy-Item .env.example .env`. A conta padrão é pública e exclusiva do site de demonstração. Configure `HEADLESS=false` para acompanhar o navegador. `python arquivo_principal.py` executa a mesma jornada sem o relatório JUnit. Selenium Manager resolve o driver; o binário histórico no repositório não é utilizado explicitamente.
 
-## O que o código faz
+## Decisões e limites
 
-1. Abre o Chrome e realiza login.
-2. Adiciona a mochila ao carrinho.
-3. Preenche os dados do checkout e conclui a jornada.
-4. Salva screenshots em `evidencias` e registros em `logs`.
+Esperas são por estado da página; não há retries para esconder falhas. Os valores esperados são do catálogo de demonstração. A suíte não verifica pagamento real, backend ou outros produtos. As preferências que desativam o gerenciador de senhas valem somente para o perfil temporário de teste.
 
-É um exemplo de interação e coleta de evidências. A mensagem de conclusão do script não substitui assertions do total ou da confirmação do pedido; essas verificações não estão implementadas como testes.
-
-## Ambiente
-
-O projeto preserva dependências antigas, incluindo Selenium 4.8, e um `chromedriver.exe`. Confira a compatibilidade do driver com o navegador. Essa revisão corrigiu o nome do comando de execução e documentou o comportamento existente; não reexecutou o script nem atualizou as dependências.
+No Actions, cada execução publica summary, JUnit e screenshots em **Artifacts**. Outputs ficam em `results/`, ignorado pelo Git; não são versionados.
