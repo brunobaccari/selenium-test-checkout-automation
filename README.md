@@ -23,3 +23,5 @@ No PowerShell, copie o exemplo com `Copy-Item .env.example .env`. A conta padrã
 Esperas são por estado da página; não há retries para esconder falhas. Os valores esperados são do catálogo de demonstração. A suíte não verifica pagamento real, backend ou outros produtos. As preferências que desativam o gerenciador de senhas valem somente para o perfil temporário de teste.
 
 No Actions, cada execução publica summary, JUnit e screenshots em **Artifacts**. Outputs ficam em `results/`, ignorado pelo Git; não são versionados.
+
+O summary do Actions lista cada cenário, duração, totais e motivo de bloqueio. O gate exige a quantidade prevista no workflow, sem falhas ou skips; JUnit ausente ou inválido reprova. O resumo também acompanha o artifact.

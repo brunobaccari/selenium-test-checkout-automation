@@ -23,3 +23,5 @@ On PowerShell, use `Copy-Item .env.example .env`. The default account is public 
 Waits follow page state; retries do not hide failures. Expected amounts come from the demo catalog. This suite does not verify actual payments, backend behavior or other products. Password-manager preferences affect only the temporary test profile.
 
 Each Actions run publishes a summary, JUnit and screenshots as **Artifacts**. Generated files stay in Git-ignored `results/` and are not committed.
+
+The Actions summary lists every scenario, duration, totals and blocking reason. The gate requires the count configured in the workflow, with no failures or skips; missing or invalid JUnit fails the gate. The summary is also included in the artifact.
