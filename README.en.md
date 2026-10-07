@@ -25,3 +25,5 @@ Waits follow page state; retries do not hide failures. Expected amounts come fro
 Each Actions run publishes a summary, JUnit and screenshots as **Artifacts**. Generated files stay in Git-ignored `results/` and are not committed.
 
 The Actions summary lists every scenario, duration, totals and blocking reason. The gate requires the count configured in the workflow, with no failures or skips; missing or invalid JUnit fails the gate. The summary is also included in the artifact.
+
+Husky: with Node 24 and the stack dependencies installed, run `npm ci` to enable pre-commit. `npm run check:local` checks the diff, report gate and existing type/lint checks. The hook also rejects ignored files in the index. Browser, emulator and API tests remain in CI.
